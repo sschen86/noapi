@@ -156,6 +156,8 @@ export default {
                             content = item.customRender(item.decorator[1].initialValue, item)
                         } else if (item.type === 'value') {
                             content = (<div>{item.value}</div>)
+                        } else if (item.type === 'select') {
+                            content = (<a-select v-decorator={item.decorator} options={item.options} />)
                         }
                         return (
                             <a-form-item label={item.label} colon={false} required={item.required} labelCol={this.labelCol} wrapperCol={this.wrapperCol}>

@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@smartx/adapter": "^1.0.2",
-    "@smartx/dpp": "^1.0.2",
     "@smartx/jsonsql": "^0.0.1",
     "ant-design-vue": "^1.4.10",
     "core-js": "^3.4.3",
+    "easy-mockapi2": "^0.1.0",
+    "fly-utils": "^0.0.1",
     "js-cookie": "^2.2.1",
     "monaco-editor": "^0.20.0",
     "path-to-regexp": "^3.1.0",

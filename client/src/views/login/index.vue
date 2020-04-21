@@ -1,13 +1,7 @@
 <template>
   <div>
     <h1>login</h1>
-    <router-link :to="{ path: '/home' }">
-      toHome
-    </router-link>
-
-    <p v-for="item in items">
-      {item}
-    </p>
+    <p>{{ tips }}</p>
   </div>
 </template>
 
@@ -15,12 +9,12 @@
 export default {
     data () {
         return {
-            items: Array(1000),
+            tips: '账号登录中...',
         }
     },
     mounted () {
-        window.addEventListener('scroll', function (e) {
-            console.info(e)
+        this.$api.login({ user: 'admin', password: '123456' }, (data) => {
+            console.info({ data })
         })
     },
 }

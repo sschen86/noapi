@@ -7,8 +7,7 @@
   >
     <div style="padding:12px">
       <h3 style="line-height:32px">
-        项目名称777
-
+        {{ projectName }}
         <a-button type="primary" style="float:right" @click="() => projectSettingDialog.open()">
           项目设置
         </a-button>
@@ -22,6 +21,8 @@
 
     <c-dialog :option="projectAddCategoryDialog" />
     <c-dialog :option="projectSettingDialog" />
+    <c-dialog :option="categorySettingDialog" />
+    <c-dialog :option="createApiDialog" />
   </a-layout-sider>
 </template>
 
@@ -29,10 +30,15 @@
 export default {
     data () {
         return {
+            projectId: this.$route.params.projectId,
+            projectName: '项目加载中...',
+            projectDescription: '',
+            projectApis: [],
+
             sidebarTop: '65px',
-            rawTreeData: [],
+            rawCategorys: [],
             projectAddCategoryDialog: {
-                title: '项目设置',
+                title: '添加分类',
                 okButtonProps: {
                     props: {
                         loading: false,
@@ -42,46 +48,39 @@ export default {
                     form: {
                         data: {
                             name: '',
-                            description: '',
                         },
                         gridLayout: {
                             labelCol: { span: 6 },
                             wrapperCol: { span: 17 },
                         },
                         fields: [
-                            [ '项目名称', 'name', {
+                            [ '分类名称', 'name', {
                                 maxlength: 10,
                                 rules: [
-                                    { required: true, message: '请输入项目名称' },
+                                    { required: true, message: '请输入分类名称' },
                                 ],
-                            } ],
-                            [ '项目描述', 'description', {
-                                maxlength: 40,
                             } ],
                         ],
                     },
                 },
-                onOpen: ({ data }, row) => {
-                    data.form.data.name = '项目名称'
-                    data.form.data.description = '项目描述'
+                onOpen: ({ data }, parentId) => {
+                    data.form.data.name = ''
+                    data.form.data.parentId = parentId
                 },
-                onClose: () => {
-
+                onClose: ({ data }) => {
+                    data.form.handle.resetFields()
                 },
-                submit: ({ data, okButtonProps }) => {
-                    return
-                    this.createProjectForm.validate((errors, values) => {
+                onSubmit: ({ data, okButtonProps }) => {
+                    data.form.handle.validateFields((errors, values) => {
                         if (errors) {
                             return
                         }
-
                         okButtonProps.props.loading = true
-                        this.$api.createProject(values)
+                        this.$api.createCategory({ projectId: this.projectId, parentId: data.form.data.parentId, name: values.name })
                             .then(res => {
                                 this.$message.success('操作成功')
-                                this.createProjectDialog.close()
-                                this.loadMyProject()
-                                this.loadAllProject()
+                                this.projectAddCategoryDialog.close()
+                                this.getProjectCategorys()
                             })
                             .finally(() => {
                                 okButtonProps.props.loading = false
@@ -127,26 +126,24 @@ export default {
                     },
                 },
                 onOpen: ({ data }, row) => {
-                    data.form.data.name = '项目名称'
-                    data.form.data.description = '项目描述'
+                    data.form.data.name = this.projectName
+                    data.form.data.description = this.projectDescription
                 },
                 onClose: () => {
 
                 },
-                submit: ({ data, okButtonProps }) => {
-                    return
-                    this.createProjectForm.validate((errors, values) => {
+                onSubmit: ({ data, okButtonProps }) => {
+                    data.form.handle.validateFields((errors, values) => {
                         if (errors) {
                             return
                         }
 
                         okButtonProps.props.loading = true
-                        this.$api.createProject(values)
-                            .then(res => {
+                        this.$api.eidtProject({ ...values, id: this.projectId })
+                            .then(() => {
                                 this.$message.success('操作成功')
-                                this.createProjectDialog.close()
-                                this.loadMyProject()
-                                this.loadAllProject()
+                                this.projectSettingDialog.close()
+                                this.getProject()
                             })
                             .finally(() => {
                                 okButtonProps.props.loading = false
@@ -161,12 +158,216 @@ export default {
                     )
                 },
             },
+            categorySettingDialog: {
+                title: '分类设置',
+                okButtonProps: {
+                    props: {
+                        loading: false,
+                    },
+                },
+                data: {
+                    form: {
+                        data: {
+                            name: '',
+                            id: '',
+                        },
+                        gridLayout: {
+                            labelCol: { span: 6 },
+                            wrapperCol: { span: 17 },
+                        },
+                        fields: [
+                            [ '分类名称', 'name', {
+                                maxlength: 10,
+                                rules: [
+                                    { required: true, message: '请输入分类名称' },
+                                ],
+                            } ],
+                        ],
+                    },
+                },
+                onOpen: ({ data }, { name, id }) => {
+                    data.form.data.name = name
+                    data.form.data.id = id
+                },
+                onClose: ({ data }) => {
+                    data.form.handle.resetFields()
+                },
+                onSubmit: ({ data, okButtonProps }) => {
+                    data.form.handle.validateFields((errors, values) => {
+                        if (errors) {
+                            return
+                        }
+
+                        okButtonProps.props.loading = true
+                        this.$api.editCategory({ ...values, id: data.form.data.id })
+                            .then(() => {
+                                this.$message.success('操作成功')
+                                this.categorySettingDialog.close()
+                                this.getProjectCategorys()
+                            })
+                            .finally(() => {
+                                okButtonProps.props.loading = false
+                            })
+                    })
+                },
+                render: ({ data }) => {
+                    return (
+                        <div>
+                            <c-form option={data.form}/>
+                        </div>
+                    )
+                },
+            },
+            createApiDialog: {
+                title: '创建API',
+                okButtonProps: {
+                    props: {
+                        loading: false,
+                    },
+                },
+                data: {
+                    form: {
+                        data: {
+                            projectId: null,
+                            name: '',
+                            path: '',
+                            method: 0,
+                            // reqDataFormat: 0,
+                            categoryId: null,
+                        },
+                        gridLayout: {
+                            labelCol: { span: 6 },
+                            wrapperCol: { span: 17 },
+                        },
+                        fields: [
+                            [ '接口名称', 'name', {
+                                maxlength: 10,
+                                rules: [
+                                    { required: true, message: '请输入接口名称' },
+                                ],
+                            } ],
+                            [ '接口地址', 'path', {
+                                maxlength: 64,
+                                rules: [
+                                    { required: true, message: '请输入接口地址' },
+                                ],
+                            } ],
+                            [ '请求方式', 'method', {
+                                type: 'select',
+                                options: [
+                                    { title: 'GET', value: 0 },
+                                    { title: 'POST', value: 1 },
+                                ],
+                                rules: [
+                                    { required: true, message: '请选择请求方式' },
+                                ],
+                            } ],
+                            /*
+                            [ '请求格式', 'reqDataFormat', {
+                                type: 'select',
+                                options: [
+                                    { title: 'application/json', value: 0 },
+                                    { title: 'application/x-www-form-urlencoded', value: 1 },
+                                    { title: 'multipart/form-data', value: 2 },
+                                ],
+                            } ], */
+                        ],
+
+                    },
+                },
+                onOpen: ({ data }, categoryId) => {
+                    Object.assign(data.form.data, {
+                        projectId: this.projectId,
+                        categoryId,
+                        name: '',
+                        path: '',
+                        method: 0,
+                        reqDataFormat: 0,
+                    })
+                },
+                onClose: ({ data }) => {
+                    data.form.handle.resetFields()
+                },
+                onSubmit: ({ data, okButtonProps }) => {
+                    data.form.handle.validateFields((errors, values) => {
+                        if (errors) {
+                            return
+                        }
+
+                        okButtonProps.props.loading = true
+                        this.$api.createApi({ ...data.form.data, ...values })
+                            .then(res => {
+                                this.$message.success('操作成功')
+                                this.createApiDialog.close()
+                                this.getProjectApis()
+                            })
+                            .finally(() => {
+                                okButtonProps.props.loading = false
+                            })
+                    })
+                },
+                render: ({ data }) => {
+                    return (
+                        <div>
+                            <c-form option={data.form} />
+                        </div>
+                    )
+                },
+            },
         }
     },
     computed: {
-        treeData (oldValue) {
-            const titleFactory = (title, { row: { id, isLeaf } }) => {
-                const titleType = isLeaf ? 'api' : id ? 'cat2' : 'cat1'
+        rawTreeData () {
+            const categorys = []
+            const parentCategorys = {}
+            const allCategorys = {}
+            this.rawCategorys.forEach(category => {
+                const { parentId } = category
+                if (parentId) {
+                    parentCategorys[parentId] = parentCategorys[parentId] || []
+                    parentCategorys[parentId].push(category)
+                } else {
+                    categorys.push(category)
+                }
+
+                // 用于挂载API的分类索引
+                if (!allCategorys[category.id]) {
+                    allCategorys[category.id] = category
+                }
+            })
+
+            this.rawCategorys.forEach(category => {
+                category.children = parentCategorys[category.id] || []
+            })
+
+
+            const unCategoryApis = []
+            const allCategorysIds = Object.keys(allCategorys).map(item => Number(item))
+
+            this.projectApis.forEach(api => {
+                const { parentId } = api
+                if (allCategorysIds.includes(parentId)) {
+                    allCategorys[parentId].children.push(api)
+                    api.key = `${parentId}-${api.id}`
+                } else {
+                    unCategoryApis.push(api)
+                    api.key = `#${api.id}`
+                }
+            })
+
+            categorys.unshift({
+                title: '未分类',
+                key: '#',
+                children: unCategoryApis,
+            })
+
+            console.info({ categorys })
+
+            return categorys
+        },
+        treeData () {
+            const titleFactory = (title, { row: { key, id, parentId, isLeaf } }) => {
+                const titleType = isLeaf ? 'api' : parentId ? 'cat2' : 'cat1'
 
                 let titleContent
 
@@ -207,7 +408,7 @@ export default {
                                     } ><a-icon type="plus-circle"/></span>
                                 </a-tooltip>
                                 {
-                                    titleType === 'cat1' && <a-tooltip placement="top">
+                                    key !== '#' && titleType === 'cat1' && <a-tooltip placement="top">
                                         <template slot="title">
                                             <span>添加子分类</span>
                                         </template>
@@ -219,29 +420,32 @@ export default {
                                         } ><a-icon type="plus" /></span>
                                     </a-tooltip>
                                 }
-
-                                <a-tooltip placement="top">
-                                    <template slot="title">
-                                        <span>修改分类</span>
-                                    </template>
-                                    <span onClick={
-                                        (e) => {
-                                            this.openEditCatDialog(id)
-                                            e.stopPropagation()
-                                        }
-                                    } ><a-icon type="edit" /></span>
-                                </a-tooltip>
-                                <a-tooltip placement="top">
-                                    <template slot="title">
-                                        <span>删除分类</span>
-                                    </template>
-                                    <span onClick={
-                                        (e) => {
-                                            this.openDeleteCatDialog(id)
-                                            e.stopPropagation()
-                                        }
-                                    } ><a-icon type="delete" /></span>
-                                </a-tooltip>
+                                {key !== '#' && (
+                                    <a-tooltip placement="top">
+                                        <template slot="title">
+                                            <span>修改分类</span>
+                                        </template>
+                                        <span onClick={
+                                            (e) => {
+                                                this.openEditCatDialog({ id, name: title })
+                                                e.stopPropagation()
+                                            }
+                                        } ><a-icon type="edit" /></span>
+                                    </a-tooltip>
+                                )}
+                                {key !== '#' && (
+                                    <a-tooltip placement="top">
+                                        <template slot="title">
+                                            <span>删除分类</span>
+                                        </template>
+                                        <span onClick={
+                                            (e) => {
+                                                this.openDeleteCatDialog(id)
+                                                e.stopPropagation()
+                                            }
+                                        } ><a-icon type="delete" /></span>
+                                    </a-tooltip>
+                                )}
                             </span>
                         </span>
                     )
@@ -254,154 +458,62 @@ export default {
                 )
             }
             const treeData = this.$adapter.transform({
-                id: 'key',
+                key: true,
+                isLeaf: true,
                 title: titleFactory,
                 children: {
-                    id: 'key',
+                    key: true,
+                    isLeaf: true,
                     title: titleFactory,
                     children: {
-                        id: 'key',
+                        key: true,
                         isLeaf: true,
                         title: titleFactory,
                     },
                 },
             }, this.rawTreeData)
 
-            // console.info({ treeData })
+            console.info({ treeData })
             return treeData
         },
     },
     beforeMount () {
-        this.rawTreeData = [
-            {
-                id: '1',
-                title: '分类1',
-                children: [
-                    {
-                        id: '1-1',
-                        title: '分类1-1',
-                        children: [
-                            {
-                                id: '1-1-1',
-                                isLeaf: true,
-                                title: '接口1-1-1',
-                            },
-                            {
-                                id: '1-1-2',
-                                isLeaf: true,
-                                title: '接口1-1-2',
-                            },
-                            {
-                                id: '1-1-3',
-                                isLeaf: true,
-                                title: '接口1-1-3',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                            {
-                                id: '1-1-4',
-                                isLeaf: true,
-                                title: '接口1-1-4',
-                            },
-                        ],
-                    },
-                ],
-            },
-            {
-                id: '2',
-                title: '分类2',
-            },
-        ]
+        this.getProject()
+        this.getProjectCategorys()
+        this.getProjectApis()
     },
     mounted () {
-        window.addEventListener('scroll', this.listenSidebarStyle)
+        window.addEventListener('scroll', this.autoSidebarPosition)
+        this.autoSidebarPosition()
     },
 
     beforeDestroy () {
-        window.removeEventListener('scroll', this.listenSidebarStyle)
+        window.removeEventListener('scroll', this.autoSidebarPosition)
     },
 
     methods: {
-        listenSidebarStyle (e) {
+        // 数据获取
+        getProject () {
+            this.$api.getProject({ id: this.projectId }).then((data) => {
+                this.projectName = data.name
+                this.projectDescription = data.description
+            })
+        },
+
+        getProjectCategorys () {
+            this.$api.getProjectCategorys({ projectId: this.projectId }).then(data => {
+                this.rawCategorys = data
+            })
+        },
+
+        getProjectApis () {
+            this.$api.getProjectApis({ projectId: this.projectId }).then(data => {
+                this.projectApis = data
+            })
+        },
+
+        // ui控制
+        autoSidebarPosition (e) {
             const scrollTop = document.documentElement.scrollTop || document.body.scrollTop
             if (scrollTop > 65) {
                 this.sidebarTop = 0
@@ -409,20 +521,40 @@ export default {
                 this.sidebarTop = `${66 - scrollTop}px`
             }
         },
-        openCreateAPIDialog (id) {
-            console.info({ openCreateAPIDialog: id })
+
+        // 操作行为
+        openCreateAPIDialog (categoryId) {
+            this.createApiDialog.open(categoryId)
         },
-        openCreateCatDialog (id) {
-            console.info({ openCreateCatDialog: id })
+        openCreateCatDialog (parentId) {
+            this.projectAddCategoryDialog.open(parentId)
         },
-        openEditCatDialog (id) {
-            console.info({ openEditCatDialog: id })
+        openEditCatDialog (data) {
+            this.categorySettingDialog.open(data)
         },
         openDeleteCatDialog (id) {
-            console.info({ openDeleteCatDialog: id })
+            this.$confirm({
+                title: '确定删除该分类？',
+                content: '删除分类不会删除存在的接口',
+                onOk: () => {
+                    return this.$api.deleteCategory({ projectId: this.projectId, id }).then(() => {
+                        this.getProjectCategorys()
+                    })
+                },
+                onCancel () {},
+            })
         },
         openDeleteAPIDialog (id) {
-            console.info({ openDeleteAPIDialog: id })
+            this.$confirm({
+                title: '确定删除该接口？',
+                content: '注意：删除后不可恢复！',
+                onOk: () => {
+                    return this.$api.deleteApi({ id }).then(() => {
+                        this.getProjectApis()
+                    })
+                },
+                onCancel () {},
+            })
         },
     },
 }

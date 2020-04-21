@@ -15,13 +15,12 @@ module.exports = {
     devServer: {
         port: 80,
         proxy: {
-            '/merchant-gw/': {
-                target: 'https://test2sop.sharegoodsmall.com/', // 开发环境
+            '^/openapi/': {
+                target: 'http://localhost:666/', // 开发环境
                 changeOrigin: true,
-                /*
                 pathRewrite: {
-                    '^/merchant-console-gateway/': '/merchant-console-gateway/',
-                }, */
+                    '^/openapi/': '/openapi/',
+                },
             },
         },
         // after: require('./mock/index'),

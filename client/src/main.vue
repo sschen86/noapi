@@ -1,7 +1,7 @@
 <template>
   <a-config-provider :locale="zhCN">
     <div id="main">
-      <router-view></router-view>
+      <router-view />
     </div>
   </a-config-provider>
 </template>
@@ -17,3 +17,8 @@ export default {
     },
 }
 </script>
+<style>
+html {
+    overflow-y: scroll;
+}
+</style>

@@ -1,5 +1,5 @@
 import './vue-prototype'
-// import './api'
+import '../api'
 import './svgicon'
 import './antd'
 // import '../styles/index.less'

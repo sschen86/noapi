@@ -13,10 +13,10 @@
           </a-button>
 
           <a-list item-layout="horizontal" :data-source="myProjects">
-            <a-list-item slot="renderItem" slot-scope="item, index">
-              <a-list-item-meta :description="item.description">
-                <router-link slot="title" :to="{ path: '/project/' + item.id }">
-                  {{ item.title }}
+            <a-list-item slot="renderItem" slot-scope="project">
+              <a-list-item-meta :description="project.description">
+                <router-link slot="title" :to="{ path: '/project/' + project.id }">
+                  {{ project.name }}
                 </router-link>
                 <a-avatar
                   slot="avatar"
@@ -24,7 +24,7 @@
                 />
               </a-list-item-meta>
               <div>
-                <a-button type="primary" @click="unfollowProject(item)">
+                <a-button type="danger" @click="unfollowProject(project)">
                   取消关注
                 </a-button>
               </div>
@@ -34,20 +34,20 @@
       </a-col>
       <a-col :span="12">
         <a-card title="全部项目">
-          <a-list item-layout="horizontal" :data-source="myProjects">
-            <a-list-item slot="renderItem" slot-scope="item, index">
-              <a-list-item-meta :description="item.description">
-                <a slot="title" href="https://www.antdv.com/">{{ item.title }}</a>
+          <a-list item-layout="horizontal" :data-source="allProjects">
+            <a-list-item slot="renderItem" slot-scope="project">
+              <a-list-item-meta :description="project.description">
+                <a slot="title" href="https://www.antdv.com/">{{ project.name }}</a>
                 <a-avatar
                   slot="avatar"
                   src="https://img.alicdn.com/tfs/TB1SFZAvQL0gK0jSZFAXXcA9pXa-200-200.png"
                 />
               </a-list-item-meta>
               <div>
-                <a-button v-if="item.isFollow" type="primary" @click="unfollowProject(item)">
+                <a-button v-if="project.isFollow" type="danger" @click="unfollowProject(project)">
                   取消关注
                 </a-button>
-                <a-button v-else type="primary" @click="onfollowProject(item)">
+                <a-button v-else type="primary" @click="onfollowProject(project)">
                   添加关注
                 </a-button>
               </div>
@@ -66,7 +66,7 @@ export default {
     data () {
         return {
             myProjects: [],
-            allProjects: [],
+            allProjectsOrigin: [],
             dataView: {
                 title: '开发动态',
                 scrollX: 1000,
@@ -107,7 +107,6 @@ export default {
                 },
             },
 
-
             createProjectDialog: {
                 title: '创建项目',
                 okButtonProps: {
@@ -115,18 +114,10 @@ export default {
                         loading: false,
                     },
                 },
-                data: {
-
-                },
-                onOpen: ({ data }, row) => {
-
-                // data.row = row
-                // data.remark = row.remark
-                },
                 onClose: () => {
                     this.createProjectForm.handle.resetFields()
                 },
-                submit: ({ data, okButtonProps }) => {
+                onSubmit: ({ data, okButtonProps }) => {
                     this.createProjectForm.validate((errors, values) => {
                         if (errors) {
                             return
@@ -137,15 +128,15 @@ export default {
                             .then(res => {
                                 this.$message.success('操作成功')
                                 this.createProjectDialog.close()
-                                this.loadMyProject()
-                                this.loadAllProject()
+                                this.getMyProject()
+                                this.getAllProjects()
                             })
                             .finally(() => {
                                 okButtonProps.props.loading = false
                             })
                     })
                 },
-                render: ({ data }) => {
+                render: () => {
                     return (
                         <div>
                             {true && <c-form option={this.createProjectForm} />}
@@ -177,28 +168,44 @@ export default {
             },
         }
     },
+    computed: {
+        allProjects () {
+            const myProjectIds = this.myProjects.map(project => project.id)
+            return this.allProjectsOrigin.map(project => {
+                project.isFollow = myProjectIds.includes(project.id)
+                return project
+            })
+        },
+    },
 
     mounted () {
-        for (let i = 0; i < 8; i++) {
-            this.myProjects.push({
-                id: `${i}`,
-                title: `项目名称${i}`,
-                description: '项目描述',
-            })
-            this.allProjects.push({
-                id: `${i}`,
-                title: `项目名称${i}`,
-                description: '项目描述',
-            })
-        }
+        this.getMyProject()
+        this.getAllProjects()
     },
 
     methods: {
+        getMyProject () {
+            this.$api.getMyProjects().then((data) => {
+                this.myProjects = data
+            })
+        },
+        getAllProjects () {
+            this.$api.getAllProjects().then((data) => {
+                this.allProjectsOrigin = data
+            })
+        },
+
         unfollowProject (row) {
-            this.$message.success(`取消关注成功${row.id}`)
+            this.$api.removeProjectFavorite({ id: row.id }).then(() => {
+                this.$message.success(`取消关注成功${row.id}`)
+                this.getMyProject()
+            })
         },
         onfollowProject (row) {
-            this.$message.success(`添加关注成功${row.id}`)
+            this.$api.addProjectFavorite({ id: row.id }).then(() => {
+                this.$message.success(`添加关注成功${row.id}`)
+                this.getMyProject()
+            })
         },
     },
 }
