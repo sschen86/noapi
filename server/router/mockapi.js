@@ -1,13 +1,12 @@
-
-import { apiMatch } from '../controls'
-import { METHOD_NUM } from '../Enum'
 import jsonsql from '@smartx/jsonsql'
+import { apiMatch } from '../controllers'
+
+const METHOD_NUM = { GET: 0, POST: 1, PUT: 2, DELETE: 3, OPTION: 4 }
 
 export default function (router) {
-    router.all('/userapi/*', async (ctx, next) => {
-        const path = ctx.path.replace('/userapi', '')
+    router.all('/mockapi/*', async (ctx, next) => {
+        const path = ctx.path.replace('/mockapi', '')
         const method = METHOD_NUM[ctx.method]
-
         const data = await apiMatch({ path, method })
 
         if (data === undefined) {

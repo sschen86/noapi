@@ -4,14 +4,19 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "dev": "nodemon --exec babel-node index"
+    "dev": "nodemon --exec babel-node index",
+    "install": "babel-node install"
   },
   "dependencies": {
     "@smartx/jsonsql": "^0.0.1",
+    "fs-extra": "^9.0.0",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",
     "koa-bodyparser": "^4.3.0",
     "koa-router": "^8.0.8",
+    "koa-send": "^5.0.0",
+    "koa-session2": "^2.2.10",
+    "md5": "^2.2.1",
     "sqlite": "^4.0.5",
     "sqlite3": "^4.1.1"
   },

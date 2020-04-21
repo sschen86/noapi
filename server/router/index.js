@@ -1,10 +1,10 @@
 import Router from 'koa-router'
 import openapi from './openapi'
-import userapi from './userapi'
+import mockapi from './mockapi'
 
 const router = new Router()
 
 openapi(router)
-userapi(router)
+mockapi(router)
 
 export default router

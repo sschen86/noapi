@@ -2,10 +2,15 @@ import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 
 let db = null
+let dbpath = './database/data.db'
+
+export function config ({ DB_PATH }) {
+    DB_PATH && (dbpath = DB_PATH)
+}
 
 async function getDb () {
     return db || (db = await open({
-        filename: './database/data.db',
+        filename: dbpath,
         driver: sqlite3.Database,
     }))
 }
@@ -80,7 +85,8 @@ export async function update (tableName, data, condition = '') {
 
 // 驼峰转下划线
 function uncamelize (str) {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
+    return str
+    // return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`)
 }
 
 // 处理sql值
