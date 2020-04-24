@@ -1,16 +1,12 @@
 <template>
-  <a-card title="响应配置" style="margin-top:10px">
+  <a-card title="响应数据" style="margin-top:10px">
     <!--<jsonsql-editor />-->
 
 
     <a-button slot="extra" type="primary" @click="() => editDialog.open()">
       编辑
     </a-button>
-    <a-descriptions>
-      <a-descriptions-item label="响应数据">
-        <a-table :columns="responseData.columns" :data-source="responseData.dataSource" :pagination="false" />
-      </a-descriptions-item>
-    </a-descriptions>
+    <a-table :columns="responseData.columns" :data-source="responseData.dataSource" :pagination="false" />
     <c-dialog :option="editDialog" />
   </a-card>
 </template>
@@ -19,10 +15,18 @@
 import JsonsqlEditor from './JsonsqlEditor'
 export default {
     components: {
+        // eslint-disable-next-line vue/no-unused-components
         JsonsqlEditor,
     },
+    props: {
+        bridge: Object,
+    },
     data () {
+        this.bridge.$bind(this)
+        this.bridge.$mapState([ 'apiId', 'apiData' ])
+
         return {
+
             responseData: {
                 columns: [
                     {
@@ -33,14 +37,14 @@ export default {
                     },
                     {
                         title: '类型',
-                        dataIndex: 'type',
-                        key: 'type',
+                        dataIndex: 'types',
+                        key: 'types',
                         width: 160,
                     },
                     {
                         title: '必选',
-                        dataIndex: 'need',
-                        key: 'need',
+                        dataIndex: 'required',
+                        key: 'required',
                         width: 60,
                     },
                     {
@@ -51,10 +55,10 @@ export default {
                     {
                         title: '描述',
                         dataIndex: 'description',
-                        width: 320,
+                        // width: 320,
                     },
                 ],
-                dataSource: [
+                dataSource: [/*
                     {
                         name: 'mobile1373814',
                         type: 'String, Number',
@@ -88,30 +92,35 @@ export default {
 
                         ],
                     },
-                    { name: 'ddff', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'dfsd', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'sssssss', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'dddddddddddddd', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                ],
+                    { name: 'ddff', key: '2', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'dfsd', key: '3', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'sssssss', key: '4', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'dddddddddddddd', key: '5', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                */],
             },
             editDialog: {
                 title: '响应数据',
-                width: 720,
+                width: 800,
                 data: {
                     jsonsqlEditor: {
                         value: '',
                         onSave: (value) => {
                             this.editDialog.data.jsonsqlEditor.value = value
-
                             this.editDialog.submit()
                         },
                     },
                 },
                 onOpen: ({ data }, args) => {
-                    data.jsonsqlEditor.value = `xxxx${Date.now()}`
+                    data.jsonsqlEditor.value = this.apiData.resData || ''
                 },
                 onSubmit: ({ data, okButtonProps }) => {
-                    console.info(data.jsonsqlEditor.value)
+                    this.$api.editApi({ id: this.apiId, resData: data.jsonsqlEditor.value }).then(data => {
+                        this.editDialog.close()
+                        this.bridge.$emit('reloadApiData')
+                    })
+                },
+                onClose: ({ data }) => {
+
                 },
                 render: () => {
                     return (
@@ -122,6 +131,30 @@ export default {
                 },
             },
         }
+    },
+    watch: {
+        apiData () {
+            this.responseData.dataSource = this.transformData(this.apiData.mockResDoc)
+        },
+    },
+
+    methods: {
+        transformData (data, parentKey = '') {
+            const newData = this.$adapter.transform({
+                key: [ (key) => `${parentKey}-${key}`, 'name' ],
+                types: [
+                    { $value: (value) => value.filter(item => item !== 'null') },
+                    { $key: 'required', $value: (value) => value.includes('null') ? '否' : '是' },
+                ],
+                $increase: { defaultValue: () => '-' },
+                description: true,
+                children: (value, { row }) => this.transformData(value, `${parentKey}-${row.key}`),
+            }, data)
+
+            //  console.info(newData)
+
+            return newData
+        },
     },
 }
 </script>

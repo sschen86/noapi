@@ -22,6 +22,13 @@ module.exports = {
                     '^/openapi/': '/openapi/',
                 },
             },
+            '^/mockapi/': {
+                target: 'http://localhost:666/', // 开发环境
+                changeOrigin: true,
+                pathRewrite: {
+                    '^/mockapi/': '/mockapi/',
+                },
+            },
         },
         // after: require('./mock/index'),
     },

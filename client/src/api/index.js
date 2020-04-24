@@ -88,6 +88,53 @@ vue.prototype.$api = ema({
             url: 'delete_api',
         },
 
+        getApiList: {
+            url: 'get_api_list',
+            resa: {
+                $strict: false,
+                data: {
+                    $increase: {
+                        status: '--',
+                        updateTime: '--',
+                    },
+                },
+            },
+        },
+
+        getApiDetail: {
+            url: 'get_api_detail',
+            resa: {
+                $strict: false,
+                method: [ true, { $key: 'methodText', $enum: [ 'GET', 'POST' ] } ],
+                mockReqDoc: {
+                    key: [ true, 'name' ],
+                    types: [
+                        { $value: (value) => value.filter(item => item !== 'null') },
+                        { $key: 'required', $value: (value) => value.includes('null') ? '否' : '是' },
+                    ],
+                    $increase: { defaultValue: () => '-' },
+                    description: true,
+                },
+                mockResDoc: true,
+            },
+            mockData2 ({ data }) {
+                return {
+                    code: 0,
+                    data: {
+                        apiId: data.apiId,
+                        name: '接口名称',
+                        path: 'jjhjhj',
+                        method: 0,
+                        methodText: 'GET',
+                    },
+                }
+            },
+        },
+
+        editApi: {
+            method: 'post',
+            url: 'edit_api',
+        },
     },
     props: {
         reqa (value, type) {
@@ -167,6 +214,15 @@ vue.prototype.$api = ema({
                 console.error(error.stack)
             }
         }
+    },
+})
+
+vue.prototype.$mockapi = ema({
+    baseURL: '/mockapi/',
+    configs: {
+        send: {
+            url: '',
+        },
     },
 })
 

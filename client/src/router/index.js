@@ -15,8 +15,6 @@ export default new VueRouter({
             children: [
                 { path: '/', component: () => import(/* webpackChunkName: "index" */ '../views/home') },
                 { path: '/project/:projectId', component: () => import(/* webpackChunkName: "index" */ '../views/apiList') },
-                // { path: '/project/:projectId/:cat1Id', component: () => import(/* webpackChunkName: "index" */ '../views/apiList') },
-                // { path: '/project/:projectId/:cat1Id/:cat2Id', component: () => import(/* webpackChunkName: "index" */ '../views/apiList') },
                 { path: '/project/:projectId/api/:apiId', component: () => import(/* webpackChunkName: "index" */ '../views/apiDetail') },
             ],
         },

@@ -17,6 +17,8 @@ import {
     apiCreate,
     apiEdit,
     apiDelete,
+    apiListGet,
+    apiDetailGet,
 } from '../controllers'
 
 // const openapis = [ createApi ]
@@ -119,12 +121,24 @@ export default function (router) {
     })
 
     router.post('/openapi/edit_api', async ctx => {
-        ctx.body = await apiEdit(ctx.request.body)
+        await apiEdit(ctx.request.body)
+        ctx.body = { code: 0, message: 'c', data: ctx.request.body }
     })
 
     router.post('/openapi/delete_api', async ctx => {
         await apiDelete(ctx.request.body)
         ctx.body = { code: 0 }
+    })
+
+    router.get('/openapi/get_api_list', async ctx => {
+        const { projectId, page, pageSize } = ctx.request.query
+        ctx.body = { code: 0, data: await apiListGet({ projectId, page, pageSize }) }
+    })
+
+    router.get('/openapi/get_api_detail', async ctx => {
+        const { apiId } = ctx.request.query
+        const data = await apiDetailGet({ apiId })
+        ctx.body = { code: 0, data }
     })
 
 

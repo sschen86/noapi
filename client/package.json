@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@smartx/adapter": "^1.0.2",
-    "@smartx/jsonsql": "^0.0.1",
+    "@smartx/jsonsql": "^0.0.3",
     "ant-design-vue": "^1.4.10",
     "core-js": "^3.4.3",
     "easy-mockapi2": "^0.1.0",

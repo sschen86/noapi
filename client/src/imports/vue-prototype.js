@@ -2,7 +2,7 @@ import Vue from 'vue'
 import vueBridge from '../packages/vueBridge'
 import adapter from '@smartx/adapter'
 
-Vue.prototype.$createBridge = vueBridge
+Vue.prototype.$bridge = vueBridge
 
 // 输入框工具集
 Vue.prototype.$input = {

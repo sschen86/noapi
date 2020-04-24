@@ -8,7 +8,7 @@
     "install": "babel-node install"
   },
   "dependencies": {
-    "@smartx/jsonsql": "^0.0.1",
+    "@smartx/jsonsql": "^0.0.3",
     "fs-extra": "^9.0.0",
     "koa": "^2.11.0",
     "koa-body": "^4.1.1",

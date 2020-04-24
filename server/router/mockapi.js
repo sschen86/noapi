@@ -5,8 +5,12 @@ const METHOD_NUM = { GET: 0, POST: 1, PUT: 2, DELETE: 3, OPTION: 4 }
 
 export default function (router) {
     router.all('/mockapi/*', async (ctx, next) => {
-        const path = ctx.path.replace('/mockapi', '')
+        const path = ctx.path.replace('/mockapi/', '')
         const method = METHOD_NUM[ctx.method]
+
+        // console.info({ path, method })
+
+
         const data = await apiMatch({ path, method })
 
         if (data === undefined) {
@@ -14,8 +18,14 @@ export default function (router) {
             return
         }
 
-        const { response } = data
+        const { resData } = data
         const { query, body, header } = ctx.request
-        ctx.body = await jsonsql.compile(response || '').execute({ $query: query, $body: body, $header: header })
+        const jsonData = await jsonsql.compile(resData || '').execute({ $query: query, $body: body, $header: header })
+
+        if (jsonData.$error) {
+            return ctx.body = { $error: jsonData.$error.message }
+        }
+        // console.info({ jsonData })
+        ctx.body = jsonData
     })
 }

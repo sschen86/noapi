@@ -1,5 +1,6 @@
 import md5 from 'md5'
 import { get, run, all, insert, update } from './database'
+import jsonsql from './plugins/jsonsql'
 
 
 export async function userQuery ({ user, password }) {
@@ -103,15 +104,15 @@ export async function apiGet ({ id }) {
 }
 
 // 创建接口
-export async function apiCreate ({ path, name, method, reqContextType, request, response, projectId, categoryId }) {
+export async function apiCreate ({ path, name, method, reqContextType, reqData, resData, projectId, categoryId }) {
     await insert('api', {
-        path, name, method, reqContextType, request, response, projectId, categoryId,
+        path, name, method, reqContextType, reqData, resData, projectId, categoryId,
     })
 }
 
 // 修改接口
-export async function apiEdit ({ id, label, path, name, method, reqContextType, request, response, categoryId }) {
-    await update('api', { label, path, name, method, reqContextType, request, response, categoryId }, `WHERE id = ${id}`)
+export async function apiEdit ({ id, path, name, method, reqContextType, reqData, resData, categoryId }) {
+    await update('api', { path, name, method, reqContextType, reqData, resData, categoryId }, `WHERE id = ${id}`)
 }
 
 // 删除接口
@@ -120,6 +121,37 @@ export async function apiDelete ({ id }) {
         DELETE FROM api WHERE id = ${id}
     `)
 }
+
+export async function apiListGet ({ projectId, page, pageSize }) {
+    pageSize = Math.min(pageSize, 100)
+
+    const { total } = await get(`
+        SELECT count(*) as total FROM api WHERE projectId = ${projectId}
+    `)
+    let data
+    if (total > 0) {
+        data = await all(`
+            SELECT *  FROM api WHERE projectId = ${projectId}
+        `)
+    }
+
+    return { total, page: Number(page), pageSize, data }
+}
+
+
+export async function apiDetailGet ({ apiId }) {
+    const data = await get(`
+        SELECT * FROM api WHERE id=${apiId}
+    `)
+
+    data.mockReqData = await jsonsql.data(data.reqData)
+    data.mockReqDoc = jsonsql.doc(data.reqData)
+    data.mockResDoc = jsonsql.doc(data.resData)
+    // data.mockResData = jsonsql.data(data.resData, data.mockReqData)
+
+    return data
+}
+
 
 // 匹配api
 

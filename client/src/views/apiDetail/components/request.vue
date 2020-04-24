@@ -1,32 +1,24 @@
 <template>
-  <a-card title="请求配置" style="margin-top:10px">
-    <a-button slot="extra" type="primary" @click="() => editAPIRequestInfoDialog.open()">
+  <a-card title="请求参数" style="margin-top:10px">
+    <a-button slot="extra" type="primary" @click="() => editDialog.open()">
       编辑
     </a-button>
-    <a-descriptions>
-      <a-descriptions-item label="请求方式">
-        <a-tag color="green">
-          GET
-        </a-tag>
-      </a-descriptions-item>
-      <a-descriptions-item label="请求格式" span="2">
-        <a-tag color="red">
-          application/json
-        </a-tag>
-      </a-descriptions-item>
-
-      <a-descriptions-item label="请求参数">
-        <a-table :columns="requestData.columns" :data-source="requestData.dataSource" :pagination="false" />
-      </a-descriptions-item>
-    </a-descriptions>
-
-    <c-dialog :option="editAPIRequestInfoDialog" />
+    <a-table :columns="requestData.columns" :data-source="requestData.dataSource" :pagination="false" />
+    <c-dialog :option="editDialog" />
   </a-card>
 </template>
 
 <script>
+import JsonsqlEditor from './JsonsqlEditor'
 export default {
+    // eslint-disable-next-line vue/no-unused-components
+    components: { JsonsqlEditor },
+    props: {
+        bridge: Object,
+    },
     data () {
+        this.bridge.$bind(this)
+        this.bridge.$mapState([ 'apiId', 'apiData' ])
         return {
             requestData: {
                 columns: [
@@ -38,14 +30,14 @@ export default {
                     },
                     {
                         title: '类型',
-                        dataIndex: 'type',
-                        key: 'type',
+                        dataIndex: 'types',
+                        key: 'types',
                         width: 160,
                     },
                     {
                         title: '必选',
-                        dataIndex: 'need',
-                        key: 'need',
+                        dataIndex: 'required',
+                        key: 'required',
                         width: 60,
                     },
                     {
@@ -56,10 +48,10 @@ export default {
                     {
                         title: '描述',
                         dataIndex: 'description',
-                        width: 320,
+                        // width: 320,
                     },
                 ],
-                dataSource: [
+                dataSource: [/*
                     {
                         name: 'mobile1373814',
                         type: 'String, Number',
@@ -93,64 +85,51 @@ export default {
 
                         ],
                     },
-                    { name: 'ddff', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'dfsd', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'sssssss', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                    { name: 'dddddddddddddd', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
-                ],
+                    { name: 'ddff', key: '2', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'dfsd', key: '3', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'sssssss', key: '4', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                    { name: 'dddddddddddddd', key: '5', type: 'String, Number', need: '是', defaultValue: '-', description: '字段描述666' },
+                */],
             },
-            editAPIRequestInfoDialog: {
-                title: '修改请求信息',
+            editDialog: {
+                title: '请求数据',
+                width: 800,
                 data: {
-                    form: {
-                        data: {
-                            name: '',
-                            path: '',
-                            category: '',
+                    jsonsqlEditor: {
+                        value: '',
+                        onSave: (value) => {
+                            this.editDialog.data.jsonsqlEditor.value = value
+
+                            this.editDialog.submit()
                         },
-                        gridLayout: {
-                            labelCol: { span: 6 },
-                            wrapperCol: { span: 17 },
-                        },
-                        fields: [
-                            [ '接口名称', 'name', {
-                                maxlength: 10,
-                                rules: [
-                                    { required: true, message: '请输入接口名称' },
-                                ],
-                            } ],
-                            [ '接口路径', 'path', {
-                                maxlength: 100,
-                                rules: [
-                                    { required: true, message: '请输入接口路径' },
-                                ],
-                            } ],
-                            [ '接口分类', 'category', {
-                                customRender: () => {
-                                    return (<div>xxx</div>)
-                                },
-                            } ],
-                        ],
                     },
                 },
                 onOpen: ({ data }, args) => {
-
+                    data.jsonsqlEditor.value = this.apiData.reqData || ''
                 },
-                submit: ({ data, okButtonProps }) => {
-                    data.form.validate((errors, values) => {
-                        if (errors) {
-                            return
-                        }
-                        console.info({ values })
+                onSubmit: ({ data, okButtonProps }) => {
+                    this.$api.editApi({ id: this.apiId, reqData: data.jsonsqlEditor.value }).then(data => {
+                        this.editDialog.close()
+                        this.bridge.$emit('reloadApiData')
                     })
+                },
+                onClose: ({ data }) => {
+
                 },
                 render: () => {
                     return (
-                        <div><c-form option={this.editAPIRequestInfoDialog.data.form}/></div>
+                        <div>
+                            <JsonsqlEditor option={this.editDialog.data.jsonsqlEditor}/>
+                        </div>
                     )
                 },
             },
         }
+    },
+    watch: {
+        apiData () {
+            this.requestData.dataSource = this.apiData.mockReqDoc
+        },
     },
 }
 </script>

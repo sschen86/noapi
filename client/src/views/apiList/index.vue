@@ -15,6 +15,7 @@ export default {
     components: { ProjectSidebar },
     data () {
         return {
+            projectId: this.$route.params.projectId,
             apiList: {
                 title: '接口列表',
                 bordered: false,
@@ -22,9 +23,9 @@ export default {
                 columns: [
                     [ '接口名称', 'name', {
                         width: 200,
-                        customRender: (value) => {
+                        customRender: (value, { id }) => {
                             return (
-                                <router-link to={{ path: '/api/666' } }>
+                                <router-link to={{ path: `/project/${this.projectId}/api/${id}` } }>
                                     {value}
                                 </router-link>
                             )
@@ -41,7 +42,8 @@ export default {
                     [ '接口状态', 'status', { width: 120 } ],
                     [ '更新时间', 'updateTime' ],
                 ],
-                dataSource (params) {
+                dataSource: (params) => {
+                    return this.$api.getApiList({ ...params, projectId: this.projectId })
                     return {
                         page: params.page,
                         total: 123,

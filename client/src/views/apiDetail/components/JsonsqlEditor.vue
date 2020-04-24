@@ -11,11 +11,14 @@ export default {
     data () {
         return {
             editorHeight: 305,
+            value: this.option.value,
         }
     },
     watch: {
         'option.value' (value) {
-            this.editor.setValue(value)
+            if (value !== this.value) {
+                this.editor.setValue(this.value = value)
+            }
         },
     },
     created () {
@@ -26,7 +29,7 @@ export default {
     },
     mounted () {
         const editor = this.editor = monaco.editor.create(this.$refs.editorBox, {
-            value: this.option.value,
+            value: this.value,
             theme: 'jsonsql',
             language: 'jsonsql',
             autoIndent: 'brackets',
@@ -34,8 +37,7 @@ export default {
         })
         editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KEY_S, () => this.onSave(editor.getValue()))
         editor.onDidChangeModelContent(e => {
-            // this.caretOffset = e.changes[0].rangeOffset//获取光标位置
-            this.option.value = editor.getValue() // 使value和其值保持一致
+            this.value = this.option.value = editor.getValue() // 使value和其值保持一致
         })
     },
     render () {
@@ -47,7 +49,7 @@ monaco.languages.register({ id: 'jsonsql' })
 monaco.languages.setMonarchTokensProvider('jsonsql', {
     tokenizer: {
         root: [
-            [ /@[a-zA-Z_$][\w$]*\b/, { token: 'data-field', log: 'annotation token: $0' } ],
+            [ /@[a-zA-Z_$][\w$]*\b/, { token: 'data-field', _log: 'annotation token: $0' } ],
             [
                 /(\/\/\/\s+)((?:[-+!*]\s+)?)([A-Za-z]+(?:,[A-Za-z]+)*\s+)(.+)/,
                 [ 'document-token', 'document-change-flag', 'document-field-type', 'document-field-description' ],

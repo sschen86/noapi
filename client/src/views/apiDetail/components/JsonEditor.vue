@@ -16,6 +16,9 @@ export default {
         'option.value' (value) {
             if (value !== this.value) {
                 this.editor.setValue(this.value = value)
+                if (this.option.format) {
+                    this.editor.trigger('格式化json', 'editor.action.formatDocument')
+                }
             }
         },
     },
@@ -38,6 +41,9 @@ export default {
         editor.onDidChangeModelContent(e => {
             this.value = this.option.value = editor.getValue() // 使value和其值保持一致
         })
+        if (this.option.format) {
+            this.editor.trigger('格式化json', 'editor.action.formatDocument')
+        }
     },
     render () {
         return (<div ref="editorBox" style={{ height: `${this.height}px`, border: '1px solid #666' }}></div>)

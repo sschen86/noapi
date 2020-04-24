@@ -361,7 +361,7 @@ export default {
                 children: unCategoryApis,
             })
 
-            console.info({ categorys })
+            // console.info({ categorys })
 
             return categorys
         },
@@ -373,7 +373,7 @@ export default {
 
                 if (titleType === 'api') {
                     titleContent = (
-                        <router-link to={{ path: '/project/xxx/api/xxx' }}>
+                        <router-link to={{ path: `/project/${this.projectId}/api/${id}` }}>
                             {title}
                             <span class="btns">
                                 <a-tooltip placement="top">
@@ -473,14 +473,17 @@ export default {
                 },
             }, this.rawTreeData)
 
-            console.info({ treeData })
+            // console.info({ treeData })
             return treeData
         },
     },
-    beforeMount () {
+    created () {
         this.getProject()
         this.getProjectCategorys()
         this.getProjectApis()
+        this.$bridge.listen('API_UPDATE', () => {
+            this.getProjectApis()
+        }, this)
     },
     mounted () {
         window.addEventListener('scroll', this.autoSidebarPosition)
@@ -489,6 +492,7 @@ export default {
 
     beforeDestroy () {
         window.removeEventListener('scroll', this.autoSidebarPosition)
+        this.$bridge.leave(this)
     },
 
     methods: {
