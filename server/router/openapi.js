@@ -12,6 +12,7 @@ import {
     categoryCreate,
     categoryEdit,
     categoryDelete,
+    categoryMove,
     apisGet,
     apiGet,
     apiCreate,
@@ -101,6 +102,16 @@ export default function (router) {
 
     router.post('/openapi/delete_category', async ctx => {
         await categoryDelete(ctx.request.body)
+        ctx.body = { code: 0 }
+    })
+
+    router.post('/openapi/move_category', async ctx => {
+        await categoryMove(ctx.request.body)
+        ctx.body = { code: 0 }
+    })
+
+    router.post('/openapi/moveAPI', async ctx => {
+        await categoryMove(ctx.request.body)
         ctx.body = { code: 0 }
     })
 

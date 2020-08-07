@@ -1,9 +1,14 @@
 <template>
-  <a-card title="请求参数" style="margin-top:10px">
+  <a-card title="请求参数" style="margin-top:10px" class="detail-request">
     <a-button slot="extra" type="primary" @click="() => editDialog.open()">
       编辑
     </a-button>
-    <a-table :columns="requestData.columns" :data-source="requestData.dataSource" :pagination="false" />
+    <a-table
+      :columns="requestData.columns"
+      :row-class-name="requestData.rowClassName"
+      :data-source="requestData.dataSource"
+      :pagination="false"
+    />
     <c-dialog :option="editDialog" />
   </a-card>
 </template>
@@ -21,6 +26,17 @@ export default {
         this.bridge.$mapState([ 'apiId', 'apiData' ])
         return {
             requestData: {
+                rowClassName: (record, index) => {
+                    if (!record) {
+                        return ''
+                    }
+                    return ({
+                        '-': 'state-remove',
+                        '+': 'state-add',
+                        '?': 'state-question',
+                        '!': 'state-warn',
+                    })[record.flag]
+                },
                 columns: [
                     {
                         title: '名称',
@@ -134,5 +150,20 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
+.detail-request{
+    .state-remove{
+       text-decoration: line-through;
+       color:red;
+    }
+    .state-add{
+        color:green;
+    }
+    .state-warn{
+        color:tomato;
+    }
+    .state-question{
+        color:violet;
+    }
+}
 </style>

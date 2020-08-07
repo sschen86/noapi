@@ -17,7 +17,12 @@
       </h3>
       <a-input style="display:none" placeholder="搜索接口" />
     </div>
-    <a-directory-tree :tree-data="treeData" />
+    <a-directory-tree
+      :tree-data="treeData"
+      draggable
+      @dragenter="onTreeItemDragEnter"
+      @drop="onTreeItemDrop"
+    />
 
     <c-dialog :option="projectAddCategoryDialog" />
     <c-dialog :option="projectSettingDialog" />
@@ -241,7 +246,7 @@ export default {
                         },
                         fields: [
                             [ '接口名称', 'name', {
-                                maxlength: 10,
+                                maxlength: 20,
                                 rules: [
                                     { required: true, message: '请输入接口名称' },
                                 ],
@@ -293,6 +298,8 @@ export default {
                         if (errors) {
                             return
                         }
+
+                        values.path = values.path.replace(/^\/+/, '')
 
                         okButtonProps.props.loading = true
                         this.$api.createApi({ ...data.form.data, ...values })
@@ -558,6 +565,24 @@ export default {
                     })
                 },
                 onCancel () {},
+            })
+        },
+
+        onTreeItemDragEnter (...args) {
+
+        },
+        onTreeItemDrop (info) {
+            const dropKey = String(info.node.eventKey)
+            const dragKey = String(info.dragNode.eventKey)
+
+            // 分类类目不能移动到未分类
+            if (dropKey.indexOf('#') !== -1 && /^(\d+)$/.test(dragKey)) {
+                return
+            }
+
+            this.$api.moveAPI({ projectId: this.projectId, selfId: dragKey, targetId: dropKey }).then(() => {
+                this.getProjectApis()
+                this.getProjectCategorys()
             })
         },
     },

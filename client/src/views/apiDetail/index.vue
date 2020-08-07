@@ -2,7 +2,7 @@
   <div class="view-api-detail">
     <a-layout>
       <project-sidebar />
-      <a-layout-content style="margin-left:361px;padding:10px">
+      <a-layout-content style="margin-left:361px;padding:10px; min-width:800px">
         <base-info :bridge="baseInfo" />
         <request-info :bridge="requestInfo" />
         <response-info :bridge="responseInfo" />

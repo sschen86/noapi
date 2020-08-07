@@ -2,7 +2,7 @@ import sqlite3 from 'sqlite3'
 import { open } from 'sqlite'
 
 let db = null
-let dbpath = './database/data.db'
+let dbpath = './database/data2.db'
 
 export function config ({ DB_PATH }) {
     DB_PATH && (dbpath = DB_PATH)
@@ -56,7 +56,7 @@ export async function insert (tableName, data) {
 
     // console.info({ title: 'insert', sqlExpression })
 
-    await run(sqlExpression)
+    return await run(sqlExpression)
 }
 
 

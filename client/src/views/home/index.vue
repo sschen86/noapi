@@ -100,8 +100,6 @@ export default {
                 events: {
                     closeNotice (row) {
                         row.loading = true
-                        console.info('关闭通知', row.id)
-
                         setTimeout(() => row.loading = false, 1000)
                     },
                 },

@@ -1,12 +1,17 @@
 <template>
-  <a-card title="响应数据" style="margin-top:10px">
+  <a-card title="响应数据" style="margin-top:10px" class="detail-response">
     <!--<jsonsql-editor />-->
 
 
     <a-button slot="extra" type="primary" @click="() => editDialog.open()">
       编辑
     </a-button>
-    <a-table :columns="responseData.columns" :data-source="responseData.dataSource" :pagination="false" />
+    <a-table
+      :columns="responseData.columns"
+      :row-class-name="responseData.rowClassName"
+      :data-source="responseData.dataSource"
+      :pagination="false"
+    />
     <c-dialog :option="editDialog" />
   </a-card>
 </template>
@@ -28,6 +33,18 @@ export default {
         return {
 
             responseData: {
+                rowClassName: (record, index) => {
+                    if (!record) {
+                        return ''
+                    }
+
+                    return ({
+                        '-': 'state-remove',
+                        '+': 'state-add',
+                        '?': 'state-question',
+                        '!': 'state-warn',
+                    })[record.flag]
+                },
                 columns: [
                     {
                         title: '名称',
@@ -146,6 +163,7 @@ export default {
                     { $value: (value) => value.filter(item => item !== 'null') },
                     { $key: 'required', $value: (value) => value.includes('null') ? '否' : '是' },
                 ],
+                flag: true,
                 $increase: { defaultValue: () => '-' },
                 description: true,
                 children: (value, { row }) => this.transformData(value, `${parentKey}-${row.key}`),
@@ -159,5 +177,20 @@ export default {
 }
 </script>
 
-<style>
+<style lang="less">
+.detail-response{
+    .state-remove{
+       text-decoration: line-through;
+       color:red;
+    }
+    .state-add{
+        color:green;
+    }
+    .state-warn{
+        color:tomato;
+    }
+    .state-question{
+        color:violet;
+    }
+}
 </style>

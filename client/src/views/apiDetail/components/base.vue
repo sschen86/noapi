@@ -21,6 +21,9 @@
       <a-descriptions-item label="请求方式">
         {{ apiData.methodText }}
       </a-descriptions-item>
+      <a-descriptions-item label="接口描述">
+        {{ apiData.description || '-' }}
+      </a-descriptions-item>
       <!--
       <a-descriptions-item label="请求格式" span="2">
         <a-tag color="red">
@@ -55,7 +58,6 @@ export default {
         this.bridge.$bind(this)
         this.bridge.$mapState([ 'projectId', 'apiId', 'apiData' ])
         return {
-
             mockDialog: {
                 title: 'MOCK接口',
                 width: 800,
@@ -80,31 +82,42 @@ export default {
                     },
                 },
                 onOpen: ({ data }) => {
-                    data.requestDataEditor.value = JSON.stringify(this.apiData.mockReqData)
+                    data.requestDataEditor.value = JSON.stringify(
+                        this.apiData.mockReqData,
+                    )
                     data.responseDataEditor.value = 0
                 },
                 onSubmit: ({ okButtonProps, data }) => {
                     okButtonProps.props.loading = true
                     data.responseDataEditor.value = 1
-                    this.$mockapi.send(JSON.parse(data.requestDataEditor.value), { method: this.apiData.methodText, url: this.apiData.path })
+                    this.$mockapi
+                        .send(JSON.parse(data.requestDataEditor.value), {
+                            method: this.apiData.methodText,
+                            url: this.apiData.path,
+                        })
                         .then((resData) => {
                             data.responseDataEditor.value = JSON.stringify(resData)
-                        }).finally(() => {
+                        })
+                        .finally(() => {
                             okButtonProps.props.loading = false
                         })
                 },
                 render: ({ data }) => {
                     const { value } = data.responseDataEditor
-                    const responseJsx = value === 0
-                        ? <div style="height:260px">等待请求...</div> : value === 1
-                            ? <div style="height:260px">数据请求中... </div> : <JsonEditor option={data.responseDataEditor}/>
+                    const responseJsx =
+            value === 0 ? (
+                <div style="height:260px">等待请求...</div>
+            ) : value === 1 ? (
+                <div style="height:260px">数据请求中... </div>
+            ) : (
+                <JsonEditor option={data.responseDataEditor} />
+            )
                     return (
                         <div>
                             <h4>请求参数：</h4>
-                            <JsonEditor option={data.requestDataEditor}/>
+                            <JsonEditor option={data.requestDataEditor} />
                             <h4 style="margin-top:8px">响应数据：</h4>
                             {responseJsx}
-
                         </div>
                     )
                 },
@@ -117,34 +130,49 @@ export default {
                             name: '',
                             path: '',
                             method: '',
+                            description: '',
                         },
                         gridLayout: {
                             labelCol: { span: 6 },
                             wrapperCol: { span: 17 },
                         },
                         fields: [
-                            [ '接口名称', 'name', {
-                                maxlength: 10,
-                                rules: [
-                                    { required: true, message: '请输入接口名称' },
-                                ],
-                            } ],
-                            [ '接口路径', 'path', {
-                                maxlength: 100,
-                                rules: [
-                                    { required: true, message: '请输入接口路径' },
-                                ],
-                            } ],
-                            [ '请求方式', 'method', {
-                                type: 'select',
-                                options: [
-                                    { title: 'GET', value: 0 },
-                                    { title: 'POST', value: 1 },
-                                ],
-                                rules: [
-                                    { required: true, message: '请选择请求方式' },
-                                ],
-                            } ],
+                            [
+                                '接口名称',
+                                'name',
+                                {
+                                    maxlength: 20,
+                                    rules: [ { required: true, message: '请输入接口名称' } ],
+                                },
+                            ],
+                            [
+                                '接口路径',
+                                'path',
+                                {
+                                    maxlength: 100,
+                                    rules: [ { required: true, message: '请输入接口路径' } ],
+                                },
+                            ],
+                            [
+                                '请求方式',
+                                'method',
+                                {
+                                    type: 'select',
+                                    options: [
+                                        { title: 'GET', value: 0 },
+                                        { title: 'POST', value: 1 },
+                                    ],
+                                    rules: [ { required: true, message: '请选择请求方式' } ],
+                                },
+                            ],
+                            [
+                                '接口描述', 'description', {
+                                    maxlength: 256,
+                                    customRender: (value, { decorator }) => {
+                                        return (<a-textarea maxLength={256} v-decorator={decorator}></a-textarea>)
+                                    },
+                                },
+                            ],
                         ],
                     },
                 },
@@ -156,7 +184,8 @@ export default {
                         if (errors) {
                             return
                         }
-                        this.$api.editApi({ ...values, id: this.apiId }).then(data => {
+                        values.path = values.path.replace(/^\/+/, '')
+                        this.$api.editApi({ ...values, id: this.apiId }).then((data) => {
                             this.editAPIBaseInfoDialog.close()
                             this.bridge.$emit('reloadApiData')
                         })
@@ -167,7 +196,9 @@ export default {
                 },
                 render: () => {
                     return (
-                        <div><c-form option={this.editAPIBaseInfoDialog.data.form}/></div>
+                        <div>
+                            <c-form option={this.editAPIBaseInfoDialog.data.form} />
+                        </div>
                     )
                 },
             },

@@ -64,6 +64,14 @@ vue.prototype.$api = ema({
             method: 'post',
             url: 'delete_category',
         },
+        moveCategory: {
+            method: 'post',
+            url: 'move_category',
+        },
+        moveAPI: {
+            method: 'post',
+            url: 'moveAPI',
+        },
         editCategory: {
             method: 'post',
             url: 'edit_category',
@@ -223,6 +231,9 @@ vue.prototype.$mockapi = ema({
         send: {
             url: '',
         },
+    },
+    request (data, config) {
+
     },
 })
 

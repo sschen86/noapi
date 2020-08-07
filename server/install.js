@@ -2,7 +2,7 @@ import { config, run, exec } from './database'
 import fs from 'fs-extra'
 import md5 from 'md5'
 
-const DB_PATH = './database/data.db'
+const DB_PATH = './database/data2.db'
 
 config({ DB_PATH })
 
@@ -83,7 +83,9 @@ async function createCategoryTable () {
             name    CHAR(64)            NOT NULL,
             projectId   INTEGER         NOT NULL,
             parentId    INTEGER,
-            createTime  TIMESTAMP       DEFAULT (datetime('now', 'localtime')),
+            prevId      INTEGER,
+            nextId      INTEGER,
+            createTime  TIMESTAMP       DEFAULT (datetime('now', 'localtime'))
         )
     `)
 }
@@ -100,6 +102,9 @@ async function createApiTable () {
             resData    CHAR,
             projectId  INTEGER                  NOT NULL,
             categoryId  INTEGER,
+            prevId      INTEGER,
+            nextId      INTEGER,
+            description CHAR(256),
             createTime  TIMESTAMP       NOT NULL DEFAULT (datetime('now', 'localtime'))
         )
     `)
