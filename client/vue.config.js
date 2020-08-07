@@ -41,7 +41,7 @@ module.exports = {
             }
         } else {
             return {
-                devtool: 'eval-source-map',
+                devtool: 'source-map',
                 plugins: [
 
                 ],

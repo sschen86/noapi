@@ -17,6 +17,7 @@ import {
     apiGet,
     apiCreate,
     apiEdit,
+    apiSearch,
     apiDelete,
     apiListGet,
     apiDetailGet,
@@ -134,6 +135,11 @@ export default function (router) {
     router.post('/openapi/edit_api', async ctx => {
         await apiEdit(ctx.request.body)
         ctx.body = { code: 0, message: 'c', data: ctx.request.body }
+    })
+
+    router.get('/openapi/search_api', async ctx => {
+        const data = await apiSearch(ctx.request.query)
+        ctx.body = { code: 0, data }
     })
 
     router.post('/openapi/delete_api', async ctx => {

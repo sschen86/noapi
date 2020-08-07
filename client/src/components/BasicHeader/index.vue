@@ -24,6 +24,25 @@
           </router-link>
 
           -->
+          <div style="margin-left:auto">
+            <a-select
+              show-search
+              :v-model="searchValue"
+              placeholder="搜索接口"
+              style="width: 200px"
+              :default-active-first-option="false"
+              :show-arrow="false"
+              :filter-option="false"
+              :not-found-content="null"
+              @search="onSearch"
+              @change="onChange"
+            >
+              <a-select-option v-for="d in searchList" :key="d.id">
+                {{ d.name }}
+              </a-select-option>
+            </a-select>
+            <!-- <a-input-search placeholder="input search text" style="width: 200px" @search="onSearch" /> -->
+          </div>
         </div>
       </a-layout-header>
     </div>
@@ -42,9 +61,30 @@ export default {
     },
     data () {
         return {
-
+            searchValue: '',
+            searchList: [],
         }
     },
+    methods: {
+        onSearch (value) {
+            if (!value) {
+                this.list = []
+                return
+            }
+            const { projectId } = this.$route.params
+            this.$api.searchAPI({ projectId, value }).then((list) => {
+                this.searchList = list
+            })
+        },
+        onChange (newApiId) {
+            const { projectId, apiId } = this.$route.params
+            if (newApiId === Number(apiId)) {
+                return
+            }
+            this.$router.push(`/project/${projectId}/api/${newApiId}`)
+        },
+    },
+
 }
 </script>
 

@@ -105,13 +105,13 @@ export default {
                 render: ({ data }) => {
                     const { value } = data.responseDataEditor
                     const responseJsx =
-            value === 0 ? (
-                <div style="height:260px">等待请求...</div>
-            ) : value === 1 ? (
-                <div style="height:260px">数据请求中... </div>
-            ) : (
-                <JsonEditor option={data.responseDataEditor} />
-            )
+                        value === 0 ? (
+                            <div style="height:260px">等待请求...</div>
+                        ) : value === 1 ? (
+                            <div style="height:260px">数据请求中... </div>
+                        ) : (
+                            <JsonEditor option={data.responseDataEditor} />
+                        )
                     return (
                         <div>
                             <h4>请求参数：</h4>

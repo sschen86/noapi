@@ -400,6 +400,14 @@ export async function apiEdit ({ id, path, name, method, description, reqContext
     await update('api', { path, name, method, reqContextType, reqData, resData, categoryId, description: description || null }, `WHERE id = ${id}`)
 }
 
+// 接口搜索
+export async function apiSearch ({ projectId, value }) {
+    const data = await all(`
+        SELECT id,name FROM api WHERE projectId = ${projectId} AND (path LIKE "%${value}%" OR name LIKE "%${value}%")
+    `)
+    return data
+}
+
 // 删除接口
 export async function apiDelete ({ id }) {
     const selfRecord = await get(`

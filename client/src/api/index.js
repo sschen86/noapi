@@ -143,6 +143,10 @@ vue.prototype.$api = ema({
             method: 'post',
             url: 'edit_api',
         },
+        searchAPI: {
+            method: 'get',
+            url: 'search_api',
+        },
     },
     props: {
         reqa (value, type) {
