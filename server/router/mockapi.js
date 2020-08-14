@@ -8,7 +8,7 @@ export default function (router) {
         const path = ctx.path.replace('/mockapi/', '')
         const method = METHOD_NUM[ctx.method]
 
-        // console.info({ path, method })
+        console.info({ path, method })
 
 
         const data = await apiMatch({ path, method })

@@ -17,6 +17,7 @@
     "koa-send": "^5.0.0",
     "koa-session2": "^2.2.10",
     "md5": "^2.2.1",
+    "path-to-regexp": "^6.1.0",
     "sqlite": "^4.0.5",
     "sqlite3": "^4.1.1"
   },

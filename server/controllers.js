@@ -1,7 +1,7 @@
 import md5 from 'md5'
 import { get, run, all, insert, update, exec } from './database'
 import jsonsql from './plugins/jsonsql'
-
+import { match } from 'path-to-regexp'
 
 export async function userQuery ({ user, password }) {
     return get(`
@@ -389,6 +389,7 @@ export async function apiCreate ({ path, name, method, reqContextType, reqData, 
             UPDATE api SET nextId=${lastID} WHERE id=${tailId};
         `)
         await run('COMMIT;')
+        updateApiMatchs({ id: lastID, type: 'add', value: path, method })
     } catch (e) {
         await run('ROLLBACK')
         throw e
@@ -398,6 +399,9 @@ export async function apiCreate ({ path, name, method, reqContextType, reqData, 
 // 修改接口
 export async function apiEdit ({ id, path, name, method, description, reqContextType, reqData, resData, categoryId }) {
     await update('api', { path, name, method, reqContextType, reqData, resData, categoryId, description: description || null }, `WHERE id = ${id}`)
+    if (path) {
+        updateApiMatchs({ id, type: 'update', value: path, method })
+    }
 }
 
 // 接口搜索
@@ -424,6 +428,7 @@ export async function apiDelete ({ id }) {
     }
     sqlExpression.push('COMMIT;')
     await exec(sqlExpression.join('\n'))
+    updateApiMatchs({ id, type: 'remove' })
     // await run(`
     //     DELETE FROM api WHERE id = ${id}
     // `)
@@ -460,10 +465,48 @@ export async function apiDetailGet ({ apiId }) {
 }
 
 
-// 匹配api
+// 精确匹配api
 
 export async function apiMatch ({ path, method }) {
-    return get(`
-        SELECT * FROM api WHERE path = '${path}' AND method = ${method}
-    `)
+    if (!apiMatchsReady) {
+        apiMatchsReady = true
+        const apis = await all('SELECT * FROM api')
+        apis.forEach(api => {
+            updateApiMatchs({ id: api.id, value: api.path, method: api.method })
+        })
+    }
+
+    let apiId
+    console.info({ apiMatchs })
+    for (const id in apiMatchs) {
+        const { match, method: matchMethod } = apiMatchs[id]
+        if (match(path) && matchMethod === method) {
+            apiId = Number(id)
+            break
+        }
+    }
+    return get(`SELECT * FROM api WHERE id=${apiId}`)
+}
+
+// api请求路径匹配正则
+let apiMatchsReady = false
+const apiMatchs = {}
+
+// 更新API映射关系
+export function updateApiMatchs ({ id, type = 'add', method, value }) {
+    switch (type) {
+        case 'add':
+        case 'update': {
+            apiMatchs[id] = {
+                method,
+                path: value,
+                match: match(value, { decode: decodeURIComponent }),
+            }
+            break
+        }
+        case 'remove': {
+            delete apiMatchs[id]
+            break
+        }
+    }
 }
