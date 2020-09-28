@@ -5,7 +5,7 @@
   "license": "MIT",
   "scripts": {
     "dev": "nodemon --exec babel-node index",
-    "install": "babel-node install"
+    "initDb": "babel-node install"
   },
   "dependencies": {
     "@smartx/jsonsql": "^0.0.3",

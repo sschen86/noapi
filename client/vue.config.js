@@ -7,6 +7,7 @@ const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin')
 // https://github.com/vuejs/vue-cli/blob/dev/docs/zh/guide/webpack.md
 // https://github.com/neutrinojs/webpack-chain/blob/master/test/Rule.js  测试用例
 
+
 module.exports = {
 
     // publicPath: '',
@@ -33,8 +34,10 @@ module.exports = {
         // after: require('./mock/index'),
     },
     configureWebpack: (function () {
-        if (process.env.NODE_ENV === 'production') {
+        if (process.env.NODE_ENV === 'production' || process.env.ENV === 'production') {
             return {
+                mode: 'production',
+                devtool: undefined,
                 plugins: [
 
                 ],

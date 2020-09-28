@@ -7,10 +7,6 @@ export default function (router) {
     router.all('/mockapi/*', async (ctx, next) => {
         const path = ctx.path.replace('/mockapi/', '')
         const method = METHOD_NUM[ctx.method]
-
-        console.info({ path, method })
-
-
         const data = await apiMatch({ path, method })
 
         if (data === undefined) {

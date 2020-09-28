@@ -477,13 +477,16 @@ export async function apiMatch ({ path, method }) {
     }
 
     let apiId
-    console.info({ apiMatchs })
+    // console.info({ apiMatchs })
     for (const id in apiMatchs) {
         const { match, method: matchMethod } = apiMatchs[id]
         if (match(path) && matchMethod === method) {
             apiId = Number(id)
             break
         }
+    }
+    if (!apiId) {
+        return
     }
     return get(`SELECT * FROM api WHERE id=${apiId}`)
 }
